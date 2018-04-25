@@ -4,12 +4,13 @@
 
 #include "state.h"
 #include "fringe.h"
+#include "searchTree.h"
 
 #define RANGE 1000000
 
-Fringe insertValidSucc(Fringe fringe, int value) {
+Fringe insertValidSucc(Fringe fringe, int value, Tree explored) {
   State s;
-  if ((value < 0) || (value > RANGE)) {
+  if (isInSearchTree (explored, value) || (value < 0) || (value > RANGE)) {
     /* ignore states that are out of bounds */
     return fringe;
   }
@@ -23,7 +24,8 @@ void search(int mode, int start, int goal) {
   int goalReached = 0;
   int visited = 0;
   int value;
-
+  Tree explored = emptyTree();
+  
   fringe = makeFringe(mode);
   state.value = start;
   fringe = insertFringe(fringe, state);
@@ -37,15 +39,17 @@ void search(int mode, int start, int goal) {
       goalReached = 1;
       break;
     }
+	explored = addInSearchTree (explored, value);
+
     /* insert neighbouring states */
-    fringe = insertValidSucc(fringe, value+1); /* rule n->n + 1      */
-    fringe = insertValidSucc(fringe, value-1); /* rule n->n - 1      */
+    fringe = insertValidSucc(fringe, value+1, explored); /* rule n->n + 1      */
+    fringe = insertValidSucc(fringe, value-1, explored); /* rule n->n - 1      */
 	if (value)
 	{
-		fringe = insertValidSucc(fringe, 2*value); /* rule n->2*n        */
-		fringe = insertValidSucc(fringe, 3*value); /* rule n->3*n        */
-		fringe = insertValidSucc(fringe, value/2); /* rule n->floor(n/2) */
-		fringe = insertValidSucc(fringe, value/3); /* rule n->floor(n/3) */
+		fringe = insertValidSucc(fringe, 2*value, explored); /* rule n->2*n        */
+		fringe = insertValidSucc(fringe, 3*value, explored); /* rule n->3*n        */
+		fringe = insertValidSucc(fringe, value/2, explored); /* rule n->floor(n/2) */
+		fringe = insertValidSucc(fringe, value/3, explored); /* rule n->floor(n/3) */
 	}
   }
   if (goalReached == 0) {
@@ -55,7 +59,8 @@ void search(int mode, int start, int goal) {
   }
   printf("(%d nodes visited)\n", visited);
   showStats(fringe);
-  deallocFringe(fringe);  
+  deallocFringe(fringe);
+  freeSearchTree(explored);
 }
 
 int main(int argc, char *argv[]) {

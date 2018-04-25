@@ -7,8 +7,8 @@
  * Note: if State is a structure, make sure that the structure does not 
  *       contain pointers!
  */
-
-typedef struct {
+  
+typedef struct State{
   int value;
 } State;
 

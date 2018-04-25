@@ -1,8 +1,8 @@
 CC=gcc
 CFLAGS=-Wall -g -O3
-INCLUDES=state.h fringe.h
+INCLUDES=state.h fringe.h searchTree.h
 
-OBJECTS=search.o fringe.o
+OBJECTS=search.o fringe.o searchTree.c
 
 all: ${OBJECTS} ${INCLUDES}
 	gcc -o search ${OBJECTS}
