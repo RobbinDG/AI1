@@ -32,32 +32,39 @@ int* backTrace(int endpoint){
 void printBacktrace(int endpoint, int start){
   int* bt = backTrace(endpoint);
   int value = start;
+  int cost = 0;
   printf("%d ", start);
 
   for(int i = bt[0]; i >= 1; --i){
     switch(bt[i]){
       case PLUS1:
         value += 1;
+        cost += 1;
         printf("(+1)-> %d ", value);
         break;
       case MIN1:
         value -= 1;
+        cost += 1;
         printf("(-1)-> %d ", value);
         break;
       case TIMES2:
         value *= 2;
+        cost += 2;
         printf("(*2)-> %d ", value);
         break;
       case TIMES3:
         value *= 3;
+        cost += 2;
         printf("(*3)-> %d ", value);
         break;
       case DIV2:
         value /= 2;
+        cost += 3;
         printf("(/2)-> %d ", value);
         break;
       case DIV3:
         value /= 3;
+        cost += 3;
         printf("(/3)-> %d ", value);
         break;
       default:
@@ -65,7 +72,7 @@ void printBacktrace(int endpoint, int start){
         break;
     }
   }
-  putchar('\n');
+  printf("\nlength = %d, cost = %d\n", bt[0], cost);
   free(bt);
 }
 
