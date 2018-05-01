@@ -16,7 +16,12 @@ Fringe makeFringe(int mode) {
     exit(EXIT_FAILURE);
   }
   f.mode = mode;
-  f.size = f.front = f.rear = 0; /* front+rear only used in FIFO mode */
+  if (f.mode == PRIO || f.mode == HEAP) {
+	  f.size = f.front = 1;
+  } else {
+	  f.size = f.front = 0;
+  }
+  f.rear = 0;      /* front+rear only used in FIFO mode */
   f.states = malloc(MAXF*sizeof(State));
   if (f.states == NULL) {
 	fprintf(stderr, "makeFringe(): memory allocation failed.\n");
@@ -46,8 +51,7 @@ Fringe insertFringe(Fringe fringe, State s, ...) {
   /* Inserts s in the fringe, and returns the new fringe.
    * This function needs a third parameter in PRIO(HEAP) mode.
    */
-  int priority;
-  va_list argument;
+  int fr;
 
   if (fringe.size == MAXF) {
     fprintf(stderr, "insertFringe(..): fatal error, out of memory.\n");
@@ -65,15 +69,10 @@ Fringe insertFringe(Fringe fringe, State s, ...) {
     break;
   case PRIO: /* PRIO == HEAP */
   case HEAP:
-    /* Get the priority from the 3rd argument of this function.
-     * You are not supposed to understand the following 5 code lines.
-     */
-    va_start(argument, s); 
-    priority = va_arg(argument, int);
-    printf("priority = %d ", priority);
-    va_end(argument);
-    printf ("HEAP NOT IMPLEMENTED YET\n");
-    exit(EXIT_FAILURE);
+    fr = fringe.front;
+	fringe.states[fr] = s;
+	upHeap (&fringe, fr);
+	fringe.front++;
     break;
   }
   fringe.size++;
@@ -104,11 +103,41 @@ Fringe removeFringe(Fringe fringe, State *s) {
     break;
   case PRIO: /* PRIO == HEAP */
   case HEAP:
-    printf ("HEAP NOT IMPLEMENTED YET\n");
-    exit(EXIT_FAILURE);
+	*s = fringe.states[1];
+	fringe.states[1] = fringe.states[--(fringe.front)];
+	downHeap (&fringe, 1);
     break;
   }
   return fringe;
+}
+
+void upHeap(Fringe* f, int childIdx){
+	if(childIdx == 1) return;
+	int parentIdx = childIdx/2;
+	if(f->states[childIdx].cost < f->states[parentIdx].cost){
+		swap(&(f->states[childIdx]), &(f->states[parentIdx]));
+		upHeap(f, parentIdx);
+	}
+}
+
+void downHeap(Fringe *f, int idx){
+	if(2*idx < f->front){
+		State* lc = &f->states[2*idx];
+		State* rc = (2*idx+1 < f->front ? &(f->states[2*idx+1]) : lc);
+		if(f->states[idx].cost > lc->cost && lc->cost <= rc->cost){
+			swap(lc, &(f->states[idx]));
+			downHeap(f, 2*idx);
+		} else if (f->states[idx].cost > rc->cost){
+			swap(rc, &(f->states[idx]));
+			downHeap(f, 2*idx+1);
+		}
+	}
+}
+
+void swap (State *a, State *b) {
+	State c = *a;
+	*a = *b;
+	*b = c;
 }
 
 void showStats(Fringe fringe) {

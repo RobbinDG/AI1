@@ -18,6 +18,7 @@
 typedef struct State{
 	int treeIndex;
   	int value;
+	int cost;
 } State;
 
 #endif

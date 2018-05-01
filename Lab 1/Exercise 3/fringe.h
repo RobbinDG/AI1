@@ -51,4 +51,8 @@ Fringe removeFringe(Fringe fringe, State *s);
 void showStats(Fringe fringe);
 /* Shows fringe statistics */
 
+void upHeap(Fringe* f, int childIdx);
+void downHeap(Fringe *f, int idx);
+void swap (State *a, State *b);
+
 #endif
