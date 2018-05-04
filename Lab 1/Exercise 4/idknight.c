@@ -1,3 +1,7 @@
+/*
+ * File can be compiled with the command "make"
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -5,13 +9,17 @@
 #include "heap.h"
 
 #define N 500   /* N times N chessboard */
-#define H 0 /* set to either 0 or 1 for different heuristics */
+#define H 0     /* set to either 0 or 1 for different heuristics */
 
 int actions[8][2] = {  /* knight moves */
   {-2, -1}, {-2, 1}, {-1, -2}, {-1, 2}, {1,-2}, {1,2}, {2, -1}, {2, 1}
 };
 int costShortestPath[N][N];
 unsigned long statesVisited = 0;
+
+int abs(int x) {
+	return (x < 0 ? -x : x);
+}
 
 int isValidLocation(int x, int y) {
   return (0<=x && x < N && 0<= y && y < N);
@@ -57,7 +65,8 @@ int heur(int startX, int startY, int goalX, int goalY){
     // Straight Line Distance in steps. One step = sqrt(5)
     return (int)sqrt((x*x+y*y)/5.0);
   } else {
-
+  	// Manhattan Distance in steps
+  	return abs((x + y)/4);
   }
 }
 
