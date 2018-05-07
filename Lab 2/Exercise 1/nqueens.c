@@ -174,15 +174,28 @@ void randomSearch() {
 
 /*************************************************************/
 
+int sharesColumnWithPreviousQueen(int row, int column){
+	for(int i = 0; i < row; ++i){
+		if(queens[i] == column) return TRUE;
+	}
+	return FALSE;
+}
+
+/* works best when using initiateQueens(0) */
 void hillClimbing() {
-  initiateQueens(0);
   int statelist[nqueens];
   for(int i = 0; i < nqueens; ++i) {
 	  /* store state ranks in array statelist */
 	  for(int j = 0; j < nqueens; ++j) {
-		  queens[i] = j;
-		  statelist[j] = evaluateState();
+		  if(!sharesColumnWithPreviousQueen(i,j)) {
+			  queens[i] = j;
+			  statelist[j] = evaluateState();
+		  } else {
+			  statelist[j] = -1;
+		  }
+		  printf("%d ", statelist[j]);
 	  }
+	  putchar('\n');
 	  
 	  /* find amount of maximal ranks */
 	  int maxVal = -1, maxCnt = 0;
@@ -196,7 +209,9 @@ void hillClimbing() {
 	  
 	  /* determine a random position from the options
 	   * and move the queen there */
-	   int choice = random() % 3;
+	   printf("maxcnt = %d\n", maxCnt);
+	   if(maxCnt == 0) continue;
+	   int choice = random() % maxCnt;
 	   int cnt = 0;
 	   for(int j = 0; j < nqueens; ++j) {
 		   if(statelist[j] == maxVal){
@@ -207,7 +222,8 @@ void hillClimbing() {
 			   ++cnt;
 		   }
 	   }
-	  
+	   printState();
+	   putchar('\n');
   }
 }
 
@@ -234,7 +250,7 @@ int main(int argc, char *argv[]) {
   
   initializeRandomGenerator();
 
-  initiateQueens(1);
+  initiateQueens(0);
   
   printf("\nInitial state:");
   printState();
@@ -244,6 +260,9 @@ int main(int argc, char *argv[]) {
   case 2: hillClimbing();       break;
   case 3: simulatedAnnealing(); break;
   }
+  
+  printf("\nFinal State");
+  printState();
 
   return 0;  
 }
