@@ -175,7 +175,40 @@ void randomSearch() {
 /*************************************************************/
 
 void hillClimbing() {
-  printf("Implement the routine hillClimbing() yourself!!\n");
+  initiateQueens(0);
+  int statelist[nqueens];
+  for(int i = 0; i < nqueens; ++i) {
+	  /* store state ranks in array statelist */
+	  for(int j = 0; j < nqueens; ++j) {
+		  queens[i] = j;
+		  statelist[j] = evaluateState();
+	  }
+	  
+	  /* find amount of maximal ranks */
+	  int maxVal = -1, maxCnt = 0;
+	  for(int j = 0; j < nqueens; ++j) {
+		  if(statelist[j] == maxVal) ++maxCnt;
+		  if(statelist[j] > maxVal) {
+			  maxVal = statelist[j];
+			  maxCnt = 1;
+		  }
+	  }
+	  
+	  /* determine a random position from the options
+	   * and move the queen there */
+	   int choice = random() % 3;
+	   int cnt = 0;
+	   for(int j = 0; j < nqueens; ++j) {
+		   if(statelist[j] == maxVal){
+			   if(cnt == choice){
+				   queens[i] = j;
+				   break;
+			   }
+			   ++cnt;
+		   }
+	   }
+	  
+  }
 }
 
 /*************************************************************/
