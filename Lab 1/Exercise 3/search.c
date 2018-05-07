@@ -8,76 +8,58 @@
 
 #define RANGE 1000000
 
-int doubleArraySize(int* arr, int size){
-  int newSize = 2*size;
-  arr = realloc(arr, newSize*sizeof(int));
-  if(arr == NULL) printf("Fatal error. Realloc(..) failure\n");
-  return newSize;
-}
-
-int* backTrace(int endpoint){
-  int size = 1;
-  int front = 1;
-  int* bt = malloc(size * sizeof(int));
-  while(endpoint != 0){
-    if(front == size) size = doubleArraySize(bt, size);
-    bt[front] = (endpoint-1)%6+1;
-    endpoint = (endpoint-1)/6;
-    ++front;
-  }
-  bt[0] = front-1;
-  return bt;
-}
-
-void printBacktrace(int endpoint, int start, int cost){
-  int* bt = backTrace(endpoint);
-  int value = start;
-  printf("%d ", start);
-
-  for(int i = bt[0]; i >= 1; --i){
-    switch(bt[i]){
+void printPathRec (Tree t, int *length) {
+	if (t->state.pathParent == NULL) {
+		printf("%d ", t->state.value);
+		return;
+	}
+	(*length)++;
+	printPathRec(t->state.pathParent, length);
+	switch(t->state.action){
       case PLUS1:
-        value += 1;
-        printf("(+1)-> %d ", value);
+        printf("(+1)-> ");
         break;
       case MIN1:
-        value -= 1;
-        printf("(-1)-> %d ", value);
+        printf("(-1)-> ");
         break;
       case TIMES2:
-        value *= 2;
-        printf("(*2)-> %d ", value);
+        printf("(*2)-> ");
         break;
       case TIMES3:
-        value *= 3;
-        printf("(*3)-> %d ", value);
+        printf("(*3)-> ");
         break;
       case DIV2:
-        value /= 2;
-        printf("(/2)-> %d ", value);
+        printf("(/2)-> ");
         break;
       case DIV3:
-        value /= 3;
-        printf("(/3)-> %d ", value);
+        printf("(/3)-> ");
         break;
       default:
         printf("ERROR IS SWITCH/CASE\n");
         break;
     }
-  }
-  printf("\nlength = %d, cost = %d\n", bt[0], cost);
-  free(bt);
+	printf("%d ", t->state.value);
 }
 
-Fringe insertValidSucc(Fringe fringe, int value, Tree explored, int cost, int index) {
+void printPath (Tree t) {
+	int length = 0;
+	printPathRec(t, &length);
+	printf ("\nlength = %d, cost = %d\n", length, t->state.cost);
+}
+
+Fringe insertValidSucc(Fringe fringe, Tree explored, Tree pathParent, int value, int cost, int action, int depth) {
   State s;
-  if (isInSearchTree (explored, value) || (value < 0) || (value > RANGE)) {
-    /* ignore states that are out of bounds */
+  // Second modification
+  if (isInSearchTreeN (explored, value) || (value < 0) || (value > RANGE) ) {
+    /* ignore states that are already explored or out of bounds */
     return fringe;
   }
+
   s.value = value;
   s.cost = cost;
-  s.treeIndex = index;
+  s.action = action;
+  s.depth = depth;
+  s.pathParent = pathParent;
   return insertFringe(fringe, s);
 }
 
@@ -86,36 +68,70 @@ void search(int mode, int start, int goal) {
   State state;
   int goalReached = 0;
   int visited = 0;
-  int value;
+  int value = 0;
   Tree explored = emptyTree();
+  Tree new = emptyTree();
   
   fringe = makeFringe(mode);
-  state.value = start;
-  state.cost = 0;
-  state.treeIndex = 0;
-  fringe = insertFringe(fringe, state);
-  while (!isEmptyFringe(fringe)) {
-    /* get a state from the fringe */
-    fringe = removeFringe(fringe, &state);
-    visited++;
-    /* is state the goal? */
-    value = state.value;
-    if (value == goal) {
-      goalReached = 1;
-      break;
-    }
-    explored = addInSearchTree (explored, value);
+  int maxDepth;
+  if (fringe.mode == IDS) {
+	  maxDepth = abs(goal - start);
+  } else {
+	  /* Setting maxDepth to 1 means the outer loop will run only once, and thus nothing
+	  has changed for the other algortihms */
+	  maxDepth = 1; 
+  }
 
-    /* insert neighbouring states */
-    fringe = insertValidSucc(fringe, value+1, explored, state.cost+1, 6*state.treeIndex+PLUS1); /* rule n->n + 1      */
-    fringe = insertValidSucc(fringe, value-1, explored, state.cost+1, 6*state.treeIndex+MIN1); /* rule n->n - 1      */
-    if (value)
-    {
-      fringe = insertValidSucc(fringe, 2*value, explored, state.cost+2, 6*state.treeIndex+TIMES2); /* rule n->2*n        */
-      fringe = insertValidSucc(fringe, 3*value, explored, state.cost+2, 6*state.treeIndex+TIMES3); /* rule n->3*n        */
-      fringe = insertValidSucc(fringe, value/2, explored, state.cost+3, 6*state.treeIndex+DIV2); /* rule n->floor(n/2) */
-      fringe = insertValidSucc(fringe, value/3, explored, state.cost+3, 6*state.treeIndex+DIV3); /* rule n->floor(n/3) */
-    }
+  int depth = 0;
+  /* Loop and increment depth until we have reached maxDepth (or reached a goal state) */
+  while (goalReached != 1 && depth < maxDepth) {
+	  state.value = start;
+      state.cost = 0;
+      state.depth = 0;
+      state.pathParent = emptyTree();
+      freeSearchTree(explored);
+      explored = emptyTree();
+	  if (fringe.mode == PRIO || fringe.mode == HEAP) {
+		  fringe.size = 1;
+	  } else {
+		  fringe.size = 0;
+	  }
+      fringe = insertFringe(fringe, state);
+	  while (!isEmptyFringe(fringe)) {
+		/* get a state from the fringe */
+		fringe = removeFringe(fringe, &state);
+		/* In insertValidSucc we check if value is already in explored. We do it again here, because sometimes (for example in
+		UCS) we also want to check if a state isn't already in the fringe. In UCS we actually only add states to the fringe if
+		it is not in explored or in the fringe. If it is in the fringe, we want the state with the lowest cost. We don't implement
+		it like this; in insertValidSucc multiple states with the same value can be in the fringe before that value has been 
+		explored, but since the fringe is a heap, the state with the lowest cost will be on top and thus the state with some 
+		value will be the value with the lowest cost and all other states with that value ar ignored, which, in the end, is what we want*/
+		if (isInSearchTreeN (explored, state.value)) // Second modification
+			continue;
+		if (fringe.mode == IDS && state.depth > depth) // For IDS, ignore states beyond depth
+			continue;
+		visited++;
+		value = state.value;
+		new = newTree (state, emptyTree(), emptyTree());
+		explored = addNodeInSearchTree (explored, new);
+		/* is state the goal? */
+		if (value == goal) {
+		  goalReached = 1;
+		  break;
+		}
+
+		/* insert neighbouring states */
+		fringe = insertValidSucc(fringe, explored, new, value+1, state.cost+1, PLUS1, state.depth+1); /* rule n->n + 1      */
+		if (value != 0) // First modification
+		{
+		  fringe = insertValidSucc(fringe, explored, new, value-1, state.cost+1, MIN1, state.depth+1); /* rule n->n - 1      */
+		  fringe = insertValidSucc(fringe, explored, new, 2*value, state.cost+2, TIMES2, state.depth+1); /* rule n->2*n        */
+		  fringe = insertValidSucc(fringe, explored, new, 3*value, state.cost+2, TIMES3, state.depth+1); /* rule n->3*n        */
+		  fringe = insertValidSucc(fringe, explored, new, value/2, state.cost+3, DIV2, state.depth+1); /* rule n->floor(n/2) */
+		  fringe = insertValidSucc(fringe, explored, new, value/3, state.cost+3, DIV3, state.depth+1); /* rule n->floor(n/3) */
+		}
+	  }
+	  depth++;	  
   }
   if (goalReached == 0) {
     printf("goal not reachable ");
@@ -124,7 +140,7 @@ void search(int mode, int start, int goal) {
   }
   printf("(%d nodes visited)\n", visited);
   showStats(fringe);
-  printBacktrace(state.treeIndex, start, state.cost);
+  if (goalReached) printPath(new);
   deallocFringe(fringe);
   freeSearchTree(explored);
 }
@@ -132,7 +148,7 @@ void search(int mode, int start, int goal) {
 int main(int argc, char *argv[]) {
   int start, goal, fringetype;
   if ((argc == 1) || (argc > 4)) {
-    fprintf(stderr, "Usage: %s <STACK|FIFO|HEAP> [start] [goal]\n", argv[0]);
+    fprintf(stderr, "Usage: %s <STACK|FIFO|HEAP|IDS> [start] [goal]\n", argv[0]);
     return EXIT_FAILURE;
   }
   fringetype = 0;
@@ -143,9 +159,11 @@ int main(int argc, char *argv[]) {
     fringetype = FIFO;
   } else if ((strcmp(argv[1], "HEAP") == 0) || (strcmp(argv[1], "PRIO") == 0)) {
     fringetype = HEAP;
+  } else if (strcmp(argv[1], "IDS") == 0) {
+	  fringetype = IDS;
   }
   if (fringetype == 0) {
-    fprintf(stderr, "Usage: %s <STACK|FIFO|HEAP> [start] [goal]\n", argv[0]);
+    fprintf(stderr, "Usage: %s <STACK|FIFO|HEAP|IDS> [start] [goal]\n", argv[0]);
     return EXIT_FAILURE;
   }
 

@@ -6,22 +6,22 @@
 
 Fringe makeFringe(int mode) {
   /* Returns an empty fringe. 
-   * The mode can be LIFO(=STACK), FIFO, or PRIO(=HEAP) 
+   * The mode can be LIFO(=STACK), FIFO, PRIO(=HEAP), or IDS
    */
   Fringe f;
   if ((mode != LIFO) && (mode != STACK) && (mode != FIFO) &&
-      (mode != PRIO) && (mode != HEAP)) {
+      (mode != PRIO) && (mode != HEAP) && (mode != IDS)) {
     fprintf(stderr, "makeFringe(mode=%d): incorrect mode. ", mode);
-    fprintf(stderr, "(mode <- [LIFO,STACK,FIFO,PRIO,HEAP])\n");
+    fprintf(stderr, "(mode <- [LIFO,STACK,FIFO,PRIO,HEAP,IDS])\n");
     exit(EXIT_FAILURE);
   }
   f.mode = mode;
   if (f.mode == PRIO || f.mode == HEAP) {
-	  f.size = f.front = 1;
+	  f.size = 1;
   } else {
-	  f.size = f.front = 0;
+	  f.size = 0;
   }
-  f.rear = 0;      /* front+rear only used in FIFO mode */
+  f.front = f.rear = 0;      /* front+rear only used in FIFO mode */
   f.states = malloc(MAXF*sizeof(State));
   if (f.states == NULL) {
 	fprintf(stderr, "makeFringe(): memory allocation failed.\n");
@@ -44,15 +44,17 @@ int getFringeSize(Fringe fringe) {
 
 int isEmptyFringe(Fringe fringe) {
   /* Returns 1 if the fringe is empty, otherwise 0 */
-  return (fringe.size == 0 ? 1 : 0);
+  if (fringe.mode == HEAP || fringe.mode == PRIO) {
+	  return (fringe.size == 1 ? 1 : 0);
+  } else {
+	return (fringe.size == 0 ? 1 : 0);
+  }
 }
 
 Fringe insertFringe(Fringe fringe, State s, ...) {
   /* Inserts s in the fringe, and returns the new fringe.
    * This function needs a third parameter in PRIO(HEAP) mode.
    */
-  int fr;
-
   if (fringe.size == MAXF) {
     fprintf(stderr, "insertFringe(..): fatal error, out of memory.\n");
     exit(EXIT_FAILURE);    
@@ -61,6 +63,7 @@ Fringe insertFringe(Fringe fringe, State s, ...) {
   switch (fringe.mode) {
   case LIFO: /* LIFO == STACK */
   case STACK:
+  case IDS:
     fringe.states[fringe.size] = s;
     break;
   case FIFO:
@@ -69,10 +72,8 @@ Fringe insertFringe(Fringe fringe, State s, ...) {
     break;
   case PRIO: /* PRIO == HEAP */
   case HEAP:
-    fr = fringe.front;
-	fringe.states[fr] = s;
-	upHeap (&fringe, fr);
-	fringe.front++;
+	fringe.states[fringe.size] = s;
+	upHeap (&fringe, fringe.size);
     break;
   }
   fringe.size++;
@@ -95,6 +96,7 @@ Fringe removeFringe(Fringe fringe, State *s) {
   switch (fringe.mode) {
   case LIFO: /* LIFO == STACK */
   case STACK:
+  case IDS:
     *s = fringe.states[fringe.size];
     break;
   case FIFO:
@@ -104,13 +106,13 @@ Fringe removeFringe(Fringe fringe, State *s) {
   case PRIO: /* PRIO == HEAP */
   case HEAP:
 	*s = fringe.states[1];
-	fringe.states[1] = fringe.states[--(fringe.front)];
+	fringe.states[1] = fringe.states[fringe.size];
 	downHeap (&fringe, 1);
     break;
   }
   return fringe;
 }
-
+/* Restores heap order */
 void upHeap(Fringe* f, int childIdx){
 	if(childIdx == 1) return;
 	int parentIdx = childIdx/2;
@@ -120,10 +122,11 @@ void upHeap(Fringe* f, int childIdx){
 	}
 }
 
+/* Restores heap order */
 void downHeap(Fringe *f, int idx){
-	if(2*idx < f->front){
+	if(2*idx < f->size){
 		State* lc = &f->states[2*idx];
-		State* rc = (2*idx+1 < f->front ? &(f->states[2*idx+1]) : lc);
+		State* rc = (2*idx+1 < f->size ? &(f->states[2*idx+1]) : lc);
 		if(f->states[idx].cost > lc->cost && lc->cost <= rc->cost){
 			swap(lc, &(f->states[idx]));
 			downHeap(f, 2*idx);

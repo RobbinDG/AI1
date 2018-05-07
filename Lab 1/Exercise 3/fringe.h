@@ -11,6 +11,7 @@
 #define FIFO  3
 #define PRIO  4
 #define HEAP  5
+#define IDS   6
 
 typedef struct Fringe {
   int mode;      /* can be LIFO(STACK), FIFO, or PRIO(HEAP)          */

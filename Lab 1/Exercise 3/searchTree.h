@@ -1,19 +1,16 @@
 #ifndef SEARCH_TREE_H
 #define SEARCH_TREE_H
+#include "state.h"
 
-typedef struct TreeNode *Tree;
-struct TreeNode {
-int item;
-Tree leftChild, rightChild;
-};
 
 Tree emptyTree();
-Tree newTree(int n, Tree tL, Tree tR);
-Tree searchNode(Tree t, int n);
-Tree addInSearchTree(Tree t, int n);
-int isInSearchTree (Tree t, int n);
-void printSearchTree (Tree t);
-void checkSearchTree (Tree t, int size);
+Tree newTree(State s, Tree tL, Tree tR);
+Tree addInSearchTree(Tree t, State s);
+Tree addNodeInSearchTree (Tree t, Tree newT);
+int isInSearchTree (Tree t, State state);
+int isInSearchTreeN (Tree t, int n);
+Tree searchNode(Tree t, State state);
 void freeSearchTree (Tree t);
+void printSearchTree (Tree t);
 
 #endif
