@@ -7,6 +7,8 @@
 
 #define MAXQ 100
 
+#define TESTING_MODE 1
+
 #define FALSE 0
 #define TRUE  1
 
@@ -30,7 +32,7 @@ void initializeRandomGenerator() {
 void initiateQueens(int flag) {
   int q;
   for (q = 0; q < nqueens; q++) {
-    queens[q] = (flag == 0? 0 : random()%nqueens); 
+    queens[q] = (flag == 0 ? 0 : random() % nqueens); 
   }
 }
 
@@ -59,6 +61,7 @@ int inConflictWithAnotherQueen(int row, int col) {
 
 /* print configuration on screen */
 void printState() {
+  if(TESTING_MODE) return;
   int row, column; 
   printf("\n");
   for(row = 0; row < nqueens; row++) {
@@ -181,9 +184,8 @@ int sharesColumnWithPreviousQueen(int row, int column){
 	return FALSE;
 }
 
-/* works best when using initiateQueens(0) */
 void hillClimbing() {
-  int statelist[nqueens];
+  int statelist[MAXQ];
   for(int i = 0; i < nqueens; ++i) {
 	  /* store state ranks in array statelist */
 	  for(int j = 0; j < nqueens; ++j) {
@@ -193,9 +195,7 @@ void hillClimbing() {
 		  } else {
 			  statelist[j] = -1;
 		  }
-		  printf("%d ", statelist[j]);
 	  }
-	  putchar('\n');
 	  
 	  /* find amount of maximal ranks */
 	  int maxVal = -1, maxCnt = 0;
@@ -209,7 +209,6 @@ void hillClimbing() {
 	  
 	  /* determine a random position from the options
 	   * and move the queen there */
-	   printf("maxcnt = %d\n", maxCnt);
 	   if(maxCnt == 0) continue;
 	   int choice = random() % maxCnt;
 	   int cnt = 0;
@@ -222,9 +221,67 @@ void hillClimbing() {
 			   ++cnt;
 		   }
 	   }
-	   printState();
-	   putchar('\n');
-  }
+	}
+	if(!TESTING_MODE) printf("\nFinal State");
+	printState();
+}
+
+void randomRestartHillClimbing() {
+    int maxRestarts = 25;
+    int best[MAXQ];
+    int bestRank = 0;
+    for(int i = 0; i < maxRestarts; ++i) {
+        int statelist[MAXQ];
+        initiateQueens(1);
+        for(int i = 0; i < nqueens; ++i) {
+            /* store state ranks in array statelist */
+            for(int j = 0; j < nqueens; ++j) {
+              if(!sharesColumnWithPreviousQueen(i,j)) {
+                  queens[i] = j;
+                  statelist[j] = evaluateState();
+              } else {
+                  statelist[j] = -1;
+              }
+            }
+
+            /* find amount of maximal ranks */
+            int maxVal = -1, maxCnt = 0;
+            for(int j = 0; j < nqueens; ++j) {
+                if(statelist[j] == maxVal) ++maxCnt;
+                if(statelist[j] > maxVal) {
+                    maxVal = statelist[j];
+                    maxCnt = 1;
+                }
+            }
+
+            /* determine a random position from the options
+            * and move the queen there */
+            if(maxCnt == 0) continue;
+            int choice = random() % maxCnt;
+            int cnt = 0;
+            for(int j = 0; j < nqueens; ++j) {
+                if(statelist[j] == maxVal){
+                    if(cnt == choice){
+                        queens[i] = j;
+                        break;
+                    }
+                    ++cnt;
+                }
+            }
+        }
+        int rank;
+        if((rank = evaluateState()) > bestRank) {
+            for(int i = 0; i < nqueens; ++i) {
+                best[i] = queens[i];
+            }
+            bestRank = rank;
+        }
+    }
+    for(int i = 0; i < nqueens; ++i) {
+        queens[i] = best[i];
+    }
+    if(!TESTING_MODE) printf("\nFinal State");
+    printState();
 }
 
 /*************************************************************/
@@ -238,31 +295,41 @@ int main(int argc, char *argv[]) {
   int algorithm;
 
   do {
-    printf ("Number of queens (1<=nqueens<%d): ", MAXQ);
-    scanf ("%d", &nqueens);
+    if(!TESTING_MODE) printf ("Number of queens (1<=nqueens<%d): ", MAXQ);
+    if(argc == 3) 
+        nqueens = atoi(argv[1]);
+    else
+        scanf ("%d", &nqueens);
   } while ((nqueens < 1) || (nqueens > MAXQ));
 
   do {
-    printf ("Algorithm: (1) Random search  (2) Hill climbing  ");
-    printf ("(3) Simulated Annealing: ");
-    scanf ("%d", &algorithm);
+    if(!TESTING_MODE) {
+        printf ("Algorithm: (1) Random search  (2) Hill climbing  ");
+        printf ("(3) Simulated Annealing: ");
+    }
+    if(argc == 3) 
+        algorithm = atoi(argv[2]);
+    else
+        scanf ("%d", &algorithm);
   } while ((algorithm < 1) || (algorithm > 3));
   
   initializeRandomGenerator();
 
-  initiateQueens(0);
+  initiateQueens(1);
   
-  printf("\nInitial state:");
+  if(!TESTING_MODE) printf("\nInitial state:");
   printState();
 
   switch (algorithm) {
   case 1: randomSearch();       break;
-  case 2: hillClimbing();       break;
+  case 2: randomRestartHillClimbing();       break;
   case 3: simulatedAnnealing(); break;
   }
-  
-  printf("\nFinal State");
-  printState();
 
+  if(TESTING_MODE) {
+    FILE *out = fopen("1.out", "a");  
+    fprintf(out, "{%.1f,%d}", (double)nqueens/10, countConflicts());  
+    fclose(out);
+  }
   return 0;  
 }
