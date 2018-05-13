@@ -5,7 +5,7 @@
 \usepackage{verbatim}
 \usepackage{enumerate}
 \usepackage{makecell}
-\usepackage{tikz}
+\usepackage{tikz,pgfplots}
 \usepackage{color}
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
@@ -67,11 +67,16 @@ q.......
 ......q.
 \end{verbatim}
 This is plenty of confirmation that this is a viable solution.
-\item We use a bash script to run the program 3 times for every possible value for \verb|N|. We can then graph the average of the results.\\
+\item We use a bash script to run the program 3 times for every possible value for \verb|N|. We can then graph the average of the results for every grid size (along the horizontal axis).\\
 
 \usetikzlibrary{calc}
 \begin{tikzpicture} 
 \draw (10,0) -- node[below] {Grid Size} (0,0) -- node[left, xshift=-.3cm, yshift=.6cm, rotate=90] {Conflicts} (0,7);
+
+% average line
+\draw[dashed, thick, domain=0:10, samples=100] plot(\x,{3.6*ln(0.3*\x+1)});
+
+% plot points
 \coordinate (m) at (0,0); \foreach \p in {{0.1,0},{0.1,0},{0.1,0}}{\coordinate (m) at ($(m)+(\p)$); } \draw[fill=red] let \p1=(m) in (\x1 / 3,\y1 / 3) circle (0.05cm);
 \coordinate (m) at (0,0); \foreach \p in {{0.2,1},{0.2,0},{0.2,0}}{\coordinate (m) at ($(m)+(\p)$); } \draw[fill=red] let \p1=(m) in (\x1 / 3,\y1 / 3) circle (0.05cm);
 \coordinate (m) at (0,0); \foreach \p in {{0.3,1},{0.3,1},{0.3,1}}{\coordinate (m) at ($(m)+(\p)$); } \draw[fill=red] let \p1=(m) in (\x1 / 3,\y1 / 3) circle (0.05cm);
