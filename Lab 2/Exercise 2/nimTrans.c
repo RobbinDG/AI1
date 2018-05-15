@@ -84,7 +84,15 @@ int minimaxDecision(int state, int turn) {
   return bestmove;
 }
 
-int* negaMax (int state, int colour, int pair[2]) {
+int* negaMax (int state, int colour, int pair[2], int transpositionTable[][3]) {
+	if (transpositionTable[state][1] != 0) {
+		pair[0] = transpositionTable[state][0];
+		if (transpositionTable[state][2] == colour)
+			pair[1] = transpositionTable[state][1];
+		else 
+			pair[1] = -transpositionTable[state][1];
+		return pair;
+	}
 	int move, bestmove, m, min = -colour*INFINITY;
 	/* terminal state ? */
 	if (state == 1) {
@@ -96,7 +104,7 @@ int* negaMax (int state, int colour, int pair[2]) {
 	/* non-terminal state */  
 	for (move = 1; move <= 3; move++) {
 		if (state - move > 0) { /* legal move */
-			pair = negaMax(state-move, -colour, pair);
+			pair = negaMax(state-move, -colour, pair, transpositionTable);
 			m = pair[1];
 			if (colour*m > colour*min) {
 				min = m;
@@ -107,19 +115,20 @@ int* negaMax (int state, int colour, int pair[2]) {
 			#endif
 		}
 	}
-	pair[0] = bestmove;
-	pair[1] = min;
+	transpositionTable[state][0] = pair[0] = bestmove;
+	transpositionTable[state][1] = pair[1] = min;
+	transpositionTable[state][2] = colour;
 	return pair;
 }
 
-int minimaxDecisionNega(int state, int turn) {
+int minimaxDecisionNega(int state, int turn, int transpositionTable[][3]) {
   int pair[2];
   if (turn == MAX) {
-	negaMax(state, 1, pair);
+	negaMax(state, 1, pair, transpositionTable);
     return pair[0];
   }
   /* turn == MIN */
-  negaMax(state, -1, pair);
+  negaMax(state, -1, pair, transpositionTable);
   return pair[0];
 }
 
@@ -135,10 +144,10 @@ void playNim(int state) {
   printf("1: %s looses\n", (turn==MAX ? "Max" : "Min"));
 }
 
-void playNimNega(int state) {
+void playNimNega(int state, int transpositionTable[][3]) {
   int turn = 0;
   while (state != 1) {
-    int action = minimaxDecisionNega(state, turn);
+    int action = minimaxDecisionNega(state, turn, transpositionTable);
     printf("%d: %s takes %d\n", state, 
            (turn==MAX ? "Max" : "Min"), action);
     state = state - action;
@@ -154,9 +163,11 @@ int main(int argc, char *argv[]) {
     return -1;
   }
   
+  int transpositionTable[101][3] = {{0}};
+  
   playNim(atoi(argv[1]));
   printf("======\n");  
-  playNimNega(atoi(argv[1]));
+  playNimNega(atoi(argv[1]), transpositionTable);
 
   return 0;
 }
