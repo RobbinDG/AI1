@@ -7,7 +7,10 @@
 
 #define MAXQ 100
 
-#define TESTING_MODE 1
+#define MAXGEN 5000
+#define GENSIZE 50
+
+#define TESTING_MODE 0
 
 #define FALSE 0
 #define TRUE  1
@@ -290,6 +293,130 @@ void simulatedAnnealing() {
   printf("Implement the routine simulatedAnnealing() yourself!!\n");
 }
 
+/*************************************************************/
+
+void printChromosome(int* chrom){
+    for(int i = 0; i < nqueens; ++i) {
+        queens[i] = chrom[i];
+    }
+    printState();
+}
+
+void freeGeneration(int** chromosomes) {
+    for(int i = 0; i < nqueens; ++i) {
+        free(chromosomes[i]);
+    }
+    free(chromosomes);
+}
+
+void initializeGeneration(int** generation) {
+    for(int i = 0; i < GENSIZE; ++i) { 
+        for(int j = 0; j < nqueens; ++j) {
+            generation[i][j] = random() % nqueens;
+        }
+    }
+}
+
+int calcFitness(int* chrom) {
+    for(int i = 0; i < nqueens; ++i) {
+        queens[i] = chrom[i];
+    }
+    return evaluateState();
+}
+
+int getFittestIndex(int** chromosomes) {
+    int idx = 0, fitness = calcFitness(chromosomes[0]);
+    for(int i = 1; i < GENSIZE; ++i) {
+        int curFitness = calcFitness(chromosomes[i]);
+        if(curFitness > fitness) {
+            idx = i;
+            fitness = curFitness;
+        }
+    }
+    return idx;
+}
+
+/* Mutates one gene in 1/4 new chromosomes
+ */
+void mutate(int* chrom){
+    if(!random() % 4) {
+        chrom[random() % nqueens] = random() % nqueens;
+    }
+}
+
+int* crossover(int** a, int** b){
+    int cutPoint = random() % nqueens;
+    int* new = malloc(nqueens * sizeof(int));
+    for(int i = 0; i < nqueens; ++i) {
+        if(i < cutPoint) {
+            new[i] = (*a)[i];
+        } else {
+            new[i] = (*b)[i];
+        }
+    }
+    return new;
+}
+
+/* returns a new generation of chromosomes */
+int** reproduce(int** chromosomes, int generationIdx){
+    int** newGeneration = malloc(GENSIZE * sizeof(int*));
+    for(int i = 0; i < GENSIZE; ++i) {
+        newGeneration[i] = malloc(nqueens * sizeof(int));
+    }
+
+    int* fitnesses = malloc(GENSIZE * sizeof(int));
+    int totalFitness = 0;
+    for(int i = 0; i < GENSIZE; ++i) {
+        fitnesses[i] = calcFitness(chromosomes[i]);
+        totalFitness += fitnesses[i];
+    }
+
+    for(int i = 0; i < GENSIZE; ++i) {
+        int cr1 = random() % totalFitness;
+        int cr2 = random() % totalFitness;
+        int a = 0, b = 0;
+        for(int j = 0; j < GENSIZE; ++j) {
+            if(cr1 < fitnesses[j] && cr1 >= 0) a = j;
+            if(cr2 < fitnesses[j] && cr2 >= 0) b = j;
+            cr1 -= fitnesses[j];
+            cr2 -= fitnesses[j];
+        }
+        // preventing inbreeding
+        if(a == b) {
+            --i; continue;
+        }
+        newGeneration[i] = crossover(&chromosomes[a], &chromosomes[b]);
+        mutate(chromosomes[i]);
+    }
+
+    free(fitnesses);
+    freeGeneration(chromosomes);
+    return newGeneration;
+}
+
+void geneticPermutation(){
+    int** chromosomes = malloc(GENSIZE * sizeof(int*));
+    for(int i = 0; i < GENSIZE; ++i) { 
+        chromosomes[i] = malloc(nqueens * sizeof(int));
+    }
+    initializeGeneration(chromosomes);
+
+    int maxFitness = (nqueens-1)*nqueens/2;
+    for(int i = 0; i < MAXGEN; ++i) {
+        chromosomes = reproduce(chromosomes, i);
+        int max = getFittestIndex(chromosomes);
+        if(calcFitness(chromosomes[max]) == maxFitness) {
+            printChromosome(chromosomes[max]);
+            return;
+        }
+    }
+    int fittest = getFittestIndex(chromosomes);
+    printf("terminated with %d/%d\n", calcFitness(chromosomes[fittest]), maxFitness);
+    printChromosome(chromosomes[fittest]);
+
+    freeGeneration(chromosomes);
+}
+
 
 int main(int argc, char *argv[]) {
   int algorithm;
@@ -305,13 +432,13 @@ int main(int argc, char *argv[]) {
   do {
     if(!TESTING_MODE) {
         printf ("Algorithm: (1) Random search  (2) Hill climbing  ");
-        printf ("(3) Simulated Annealing: ");
+        printf ("(3) Simulated Annealing  (4) Genetic Permutation: ");
     }
     if(argc == 3) 
         algorithm = atoi(argv[2]);
     else
         scanf ("%d", &algorithm);
-  } while ((algorithm < 1) || (algorithm > 3));
+  } while ((algorithm < 1) || (algorithm > 4));
   
   initializeRandomGenerator();
 
@@ -321,9 +448,10 @@ int main(int argc, char *argv[]) {
   printState();
 
   switch (algorithm) {
-  case 1: randomSearch();       break;
-  case 2: randomRestartHillClimbing();       break;
-  case 3: simulatedAnnealing(); break;
+  case 1: randomSearch();              break;
+  case 2: randomRestartHillClimbing(); break;
+  case 3: simulatedAnnealing();        break;
+  case 4: geneticPermutation();        break;
   }
 
   if(TESTING_MODE) {
