@@ -9,11 +9,14 @@
 
 #define MAXGEN 5000
 #define GENSIZE 50
+#define MUTATE_MODE 1
 
 #define TESTING_MODE 0
 
 #define FALSE 0
 #define TRUE  1
+
+#define euler 2.7182818
 
 #define ABS(a) ((a) < 0 ? (-(a)) : (a))
 
@@ -289,8 +292,40 @@ void randomRestartHillClimbing() {
 
 /*************************************************************/
 
-void simulatedAnnealing() {
-  printf("Implement the routine simulatedAnnealing() yourself!!\n");
+int timeToTemperature(float t){
+    t = t*0.95; 
+    return t;
+}
+
+void simulatedAnnealing(){
+	for(int restart = 0; restart < 50; restart++){
+		for(int tries = 0; tries < 1000; tries++){
+			for(int i = 0; i < nqueens; i++){
+				int current = countConflicts();
+				int min = current;
+				int minRow = i;
+				for (int j = 0; j < nqueens; j++){
+					moveQueen(i,j);
+					int currentRowConflict = countConflicts();
+					if (currentRowConflict<min){
+						min = currentRowConflict;
+						minRow = j;
+					}
+				}
+				moveQueen(i, minRow);
+			}
+			// if there are no conflicts, the solution is found
+			if(!countConflicts()){
+				break;
+			}
+		}
+		if(!countConflicts()){
+			break;
+		}
+		initiateQueens(1);
+	}
+	if(!TESTING_MODE) printf("\nFinal State");
+    printState();
 }
 
 /*************************************************************/
@@ -336,11 +371,20 @@ int getFittestIndex(int** chromosomes) {
     return idx;
 }
 
-/* Mutates one gene in 1/4 new chromosomes
+/* Mutates one gene in 1/4 new chromosomes OR
+ * Mutates a gene with a probability of 10%
  */
 void mutate(int* chrom){
-    if(!random() % 4) {
-        chrom[random() % nqueens] = random() % nqueens;
+    if(!MUTATE_MODE) {
+        if(!(random() % 4)) {
+            chrom[random() % nqueens] = random() % nqueens;
+        }
+    } else {
+        for(int i = 0; i < nqueens; ++i) {
+            if(!(random() % 10)) {
+                chrom[i] = random() % nqueens;
+            }
+        }
     }
 }
 
@@ -357,29 +401,36 @@ int* crossover(int** a, int** b){
     return new;
 }
 
-/* returns a new generation of chromosomes */
+/* returns a new generation of chromosomes, and frees the given one */
 int** reproduce(int** chromosomes, int generationIdx){
     int** newGeneration = malloc(GENSIZE * sizeof(int*));
     for(int i = 0; i < GENSIZE; ++i) {
         newGeneration[i] = malloc(nqueens * sizeof(int));
     }
 
-    int* fitnesses = malloc(GENSIZE * sizeof(int));
-    int totalFitness = 0;
+    /* instead of using the fitness as a probability function,
+     * we will use function of the fitness and some other variables
+     * to give better chromosomes a greater advantage over the
+     * worse chromosomes. This is to decrease the time of convergence */
+    int* probabilities = malloc(GENSIZE * sizeof(int));
+    int totalProb = 0;
     for(int i = 0; i < GENSIZE; ++i) {
-        fitnesses[i] = calcFitness(chromosomes[i]);
-        totalFitness += fitnesses[i];
+        /* probability function yields values between [nqueens, 1]
+         * for lowest and highest fitne sses respectively */
+        int f = calcFitness(chromosomes[i]);
+        probabilities[i] = (f * nqueens) / (-2*f + nqueens*nqueens);
+        totalProb += probabilities[i];
     }
 
     for(int i = 0; i < GENSIZE; ++i) {
-        int cr1 = random() % totalFitness;
-        int cr2 = random() % totalFitness;
+        int cr1 = random() % totalProb;
+        int cr2 = random() % totalProb;
         int a = 0, b = 0;
         for(int j = 0; j < GENSIZE; ++j) {
-            if(cr1 < fitnesses[j] && cr1 >= 0) a = j;
-            if(cr2 < fitnesses[j] && cr2 >= 0) b = j;
-            cr1 -= fitnesses[j];
-            cr2 -= fitnesses[j];
+            if(cr1 < probabilities[j] && cr1 >= 0) a = j;
+            if(cr2 < probabilities[j] && cr2 >= 0) b = j;
+            cr1 -= probabilities[j];
+            cr2 -= probabilities[j];
         }
         // preventing inbreeding
         if(a == b) {
@@ -389,7 +440,7 @@ int** reproduce(int** chromosomes, int generationIdx){
         mutate(chromosomes[i]);
     }
 
-    free(fitnesses);
+    free(probabilities);
     freeGeneration(chromosomes);
     return newGeneration;
 }
@@ -406,12 +457,13 @@ void geneticPermutation(){
         chromosomes = reproduce(chromosomes, i);
         int max = getFittestIndex(chromosomes);
         if(calcFitness(chromosomes[max]) == maxFitness) {
+            printf("\nFound solution");
             printChromosome(chromosomes[max]);
             return;
         }
     }
     int fittest = getFittestIndex(chromosomes);
-    printf("terminated with %d/%d\n", calcFitness(chromosomes[fittest]), maxFitness);
+    printf("\nTerminated with %d/%d (%.2f%%)", calcFitness(chromosomes[fittest]), maxFitness, 100*calcFitness(chromosomes[fittest]) / (float)maxFitness);
     printChromosome(chromosomes[fittest]);
 
     freeGeneration(chromosomes);

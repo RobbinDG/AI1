@@ -288,13 +288,13 @@ void randomRestartHillClimbing() {
 
 /*************************************************************/
 int timeToTemperature(float t){
-	t = t*0.95; //or something like that
+	t = t*0.95;
 	return t;
 }
 
 
 void simulatedAnnealing(){
-	float t = 30.0;
+	float t = 50.0;
 	for(int restart = 0; restart < 50; restart++){
 		for(int tries = 0; tries < 500; tries++){
 			for(int i = 0; i < nqueens; i++){
@@ -313,7 +313,7 @@ void simulatedAnnealing(){
 				// if the amount of conflicts at the new is bigger than
 				// the old amount of conflicts, move the queen back to
 				// the 'current' configuration
-				if (deltaE > 0){
+				if (deltaE < 0){
 					moveQueen(newPos,i);
 				}
 				// otherwise, the probability game starts, as 
@@ -323,7 +323,11 @@ void simulatedAnnealing(){
 					float r = ((float)rand() / RAND_MAX);
 					float p = pow(euler, (deltaE/t));
 					if (p>r){
-						moveQueen(i, newPos);
+						// do nothing, because the queen is already in
+						// newPos
+					}
+					else{
+						moveQueen(newPos,i);
 					}
 				}
 			}
@@ -338,10 +342,8 @@ void simulatedAnnealing(){
 		}
 		// retry with different start
 		initiateQueens(1);
-		t = 30.0;
+		t = 50.0;
 	}
-	int x = countConflicts();
-	printf("conflicts = %d", x);
 	if(!TESTING_MODE) printf("\nFinal State");
     printState();
 }
