@@ -293,6 +293,40 @@ void randomRestartHillClimbing() {
 /*************************************************************/
 
 int timeToTemperature(float t){
+<<<<<<< HEAD
+    t = t*0.95; 
+    return t;
+}
+
+void simulatedAnnealing(){
+	for(int restart = 0; restart < 50; restart++){
+		for(int tries = 0; tries < 1000; tries++){
+			for(int i = 0; i < nqueens; i++){
+				int current = countConflicts();
+				int min = current;
+				int minRow = i;
+				for (int j = 0; j < nqueens; j++){
+					moveQueen(i,j);
+					int currentRowConflict = countConflicts();
+					if (currentRowConflict<min){
+						min = currentRowConflict;
+						minRow = j;
+					}
+				}
+				moveQueen(i, minRow);
+			}
+			// if there are no conflicts, the solution is found
+			if(!countConflicts()){
+				break;
+			}
+		}
+		if(!countConflicts()){
+			break;
+		}
+		initiateQueens(1);
+	}
+	if(!TESTING_MODE) printf("\nFinal State");
+=======
     t = t*0.95; //or something like that
     return t;
 }
@@ -348,6 +382,7 @@ void simulatedAnnealing(){
     int x = countConflicts();
     printf("conflicts = %d", x);
     if(!TESTING_MODE) printf("\nFinal State");
+>>>>>>> e400f02b1e5d487bb03b387147ac38e1a8ce985f
     printState();
 }
 
