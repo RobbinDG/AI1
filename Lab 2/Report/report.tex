@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
+\usepackage[margin=3.5cm]{geometry}
 \usepackage{graphicx}
 \usepackage{listings}
 \usepackage{verbatim}
@@ -72,8 +73,13 @@ This is plenty of confirmation that this is a viable solution.
 \item We use a bash script to run the program 3 times for every possible value for \verb|N|. We can then graph the average of the results for every grid size (along the horizontal axis).\\
 
 \usetikzlibrary{calc}
+\begin{center}
 \begin{tikzpicture} 
 \draw (10,0) -- node[below] {Grid Size} (0,0) -- node[left, xshift=-.3cm, yshift=.6cm, rotate=90] {Conflicts} (0,7);
+\draw (0,0) -- (0,-0.1) node[below] {$0$};
+\draw (0,0) -- (-0.1,0) node[left] {$0$};
+\draw (10,0) -- (10,-0.1) node[below] {$100$};
+\draw (0,7) -- (-0.1,7) node[left] {$7$};
 
 % average line
 \draw[dashed, thick, domain=0:10, samples=100] plot(\x,{3.6*ln(0.3*\x+1)});
@@ -179,6 +185,7 @@ This is plenty of confirmation that this is a viable solution.
 \coordinate (m) at (0,0); \foreach \p in {{9.8,4},{9.8,3},{9.8,5}}{\coordinate (m) at ($(m)+(\p)$); } \draw[fill=red] let \p1=(m) in (\x1 / 3,\y1 / 3) circle (0.05cm);
 \coordinate (m) at (0,0); \foreach \p in {{9.9,3},{9.9,4},{9.9,3}}{\coordinate (m) at ($(m)+(\p)$); } \draw[fill=red] let \p1=(m) in (\x1 / 3,\y1 / 3) circle (0.05cm);
 \end{tikzpicture}
+\end{center}
 \end{enumerate}
 
 \subsection*{1.2 - Simulated Annealing}
