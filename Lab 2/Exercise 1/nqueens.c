@@ -293,7 +293,6 @@ void randomRestartHillClimbing() {
 /*************************************************************/
 
 int timeToTemperature(float t){
-<<<<<<< HEAD
     t = t*0.95; 
     return t;
 }
@@ -326,63 +325,6 @@ void simulatedAnnealing(){
 		initiateQueens(1);
 	}
 	if(!TESTING_MODE) printf("\nFinal State");
-=======
-    t = t*0.95; //or something like that
-    return t;
-}
-
-
-void simulatedAnnealing(){
-    float t = 30.0;
-    for(int restart = 0; restart < 50; restart++){
-        for(int tries = 0; tries < 500; tries++){
-            for(int i = 0; i < nqueens; i++){
-                int pos = columnOfQueen(i);
-                int newPos = pos;
-                // loop so that the random number is not the same
-                while (newPos == pos) {
-                    newPos = random() % nqueens;
-                }
-                // current = current amount of conflicts
-                int current = countConflicts();
-                // next = amount of conflicts if moved to random newPos
-                moveQueen(i,newPos);
-                int next = countConflicts();
-                int deltaE = current - next;
-                // if the amount of conflicts at the new is bigger than
-                // the old amount of conflicts, move the queen back to
-                // the 'current' configuration
-                if (deltaE > 0){
-                    moveQueen(newPos,i);
-                }
-                // otherwise, the probability game starts, as 
-                // the next state has more conflicts than the 
-                // current one
-                else{
-                    float r = ((float)rand() / RAND_MAX);
-                    float p = pow(euler, (deltaE/t));
-                    if (p>r){
-                        moveQueen(i, newPos);
-                    }
-                }
-            }
-            // if there are no conflicts, the solution is found
-            if(!countConflicts()){
-                break;
-            }
-            t = timeToTemperature(t);
-        }
-        if(!countConflicts()){
-            break;
-        }
-        // retry with different start
-        initiateQueens(1);
-        t = 30.0;
-    }
-    int x = countConflicts();
-    printf("conflicts = %d", x);
-    if(!TESTING_MODE) printf("\nFinal State");
->>>>>>> e400f02b1e5d487bb03b387147ac38e1a8ce985f
     printState();
 }
 
