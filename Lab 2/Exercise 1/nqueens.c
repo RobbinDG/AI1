@@ -436,13 +436,12 @@ int** reproduce(int** chromosomes, int generationIdx){
      * to give better chromosomes a greater advantage over the
      * worse chromosomes. This is to decrease the time of convergence */
     int* probabilities = malloc(GENSIZE * sizeof(int));
-    int m = (nqueens * (nqueens-1))/2;
     int totalProb = 0;
     for(int i = 0; i < GENSIZE; ++i) {
         /* probability function yields values between [nqueens, 1]
          * for lowest and highest fitne sses respectively */
         int f = calcFitness(chromosomes[i]);
-        probabilities[i] = (m * nqueens) / (-2*f + nqueens*nqueens);
+        probabilities[i] = (f * nqueens) / (-2*f + nqueens*nqueens);
         totalProb += probabilities[i];
     }
 
