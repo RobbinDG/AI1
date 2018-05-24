@@ -1,5 +1,6 @@
 # temporary / local files and folders
 temp/
+*.log
 
 # Prerequisites
 *.d
