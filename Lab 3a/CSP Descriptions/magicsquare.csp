@@ -1,0 +1,21 @@
+variables:
+  a,v[16]: integer;
+domains:
+  a <- [10..56]; v <- [1..16];
+constraints: 
+  alldiff(v);
+# horizontals
+  v[0] + v[1] + v[2] + v[3] = a;
+  v[4] + v[5] + v[6] + v[7] = a;
+  v[8] + v[9] + v[10] + v[11] = a;
+  v[12] + v[13] + v[14] + v[15] = a;
+# verticals
+  v[0] + v[4] + v[8] + v[12] = a;
+  v[1] + v[5] + v[9] + v[13] = a;
+  v[2] + v[6] + v[10] + v[14] = a;
+  v[3] + v[7] + v[11] + v[15] = a;
+# diagonals
+  v[0] + v[5] + v[10] + v[15] = a;
+  v[3] + v[6] + v[9] + v[12] = a;
+
+solutions: all
