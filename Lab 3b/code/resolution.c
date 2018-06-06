@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* Assumption: the propositional symbols are a, b, .., z.
  * So, each propositional formula contains at most 26 
@@ -259,9 +260,9 @@ void resolution(clauseSet *kb) {
     for (i=0; i < kb->size; i++) {
       for (j=i+1; j < kb->size; j++) {
         clauseSet resolvents;
-    resolveClauses(kb->clauses[i], kb->clauses[j], &resolvents);
-    unionOfClauseSets(&inferred, resolvents);
-    freeClauseSet(resolvents);
+        resolveClauses(kb->clauses[i], kb->clauses[j], &resolvents);
+        unionOfClauseSets(&inferred, resolvents);
+        freeClauseSet(resolvents);
       }
     }
     if (isClauseSubset(inferred, *kb)) {
@@ -293,8 +294,100 @@ void init(clauseSet *s) {
   insertInClauseSet(c, s);
 }
 
+/******** Part 1 ***************************************/
+
+int isResolvent(clause c, clauseSet* s) {
+    for(int i = 0; i < s->size; ++i) {
+        if(areEqualClauses(c, s->clauses[i])) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+void printResolution(clause rsv, clause a, clause b) {
+    printClause(rsv);
+    printf(" is inferred from ");
+    printClause(a);
+    printf(" and ");
+    printClause(b);
+    printf(".\n");
+}
+
 void recursivePrintProof(int idx, clauseSet s) {
-  printf("IMPLEMENT THE ROUTINE recursivePrintProof yourself!\n");
+    /* Find two different clauses that resolve the clause at idx.
+     * Then, find whatever resolved those clauses. If there are none,
+     * we hit one of the initial clauses, and stop. */
+    for(int a = 0; a < s.size; ++a) {
+        for(int b = a + 1; b < s.size; ++b) {
+            if(a == idx || b == idx) continue;
+
+            clauseSet rsv;
+            resolveClauses(s.clauses[a], s.clauses[b], &rsv);
+            if(isResolvent(s.clauses[idx], &rsv)) {
+                recursivePrintProof(a, s);
+                recursivePrintProof(b, s);
+                printResolution(s.clauses[idx], s.clauses[a], s.clauses[b]);
+                return;
+            }
+        }
+    }
+}
+
+/******** Part 2 ***************************************/
+
+/* 
+ * Checks if the input is in the correct format:
+ * 'KB=[. . .]'
+ */
+int isValidInput(char* input) {
+    if(input[0] == 'K' && input[1] == 'B' 
+        && input[2] == '=' && input[3] == '[') return TRUE;
+    fprintf(stderr, "Syntax Error: Invalid input string. Must be in the form \"KB=[...]\".\n");
+    return FALSE;
+}
+
+/*
+ * Makes a clause from a given input. Returns forwarded index to
+ * next clause.
+ */
+int makeClauseFromString(clause* c, char* input, int idx) {
+    if(input[idx] == '[') ++idx;
+
+    int i = 0;
+    while(input[idx] != ']') {
+        ++i; ++idx;
+    }
+    char* s = malloc((i+1) * sizeof(char));
+    strncpy(s, input+idx-i, i);
+    makeClause(c, s);
+    free(s);
+    idx+=2;
+    return idx;
+}
+
+/*
+ * Returns false when loading failed.
+ */
+int loadKB(clauseSet* kb, char* input) {
+    makeEmptyClauseSet(kb);
+    if(!isValidInput(input)){
+        return FALSE;
+    }
+
+    int idx = 4;
+    while(input[idx] != '\0') {
+        if(input[idx] != '[') {
+            fprintf(stderr, "Syntax Error: Clauses must be listed in the form \"[[...],[...],[...]]\".\n");
+            return FALSE;
+        }
+
+        clause c;
+        makeEmptyClause(&c);
+        idx = makeClauseFromString(&c, input, idx);
+        insertInClauseSet(c, kb);
+    }
+    return TRUE;
 }
 
 void printProof(clauseSet s) {
@@ -307,7 +400,13 @@ void printProof(clauseSet s) {
            
 int main(int argc, char *argv[]) {
   clauseSet kb;
-  init(&kb);
+  if(argc >= 2) {
+    if(!loadKB(&kb, argv[1])){
+        return 1;
+    }
+  } else {
+      init(&kb);
+  }
   printf("KB=");
   printlnClauseSet(kb);
   resolution(&kb);
