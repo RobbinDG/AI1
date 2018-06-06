@@ -1,0 +1,39 @@
+\documentclass{report}
+
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Exercise 2 - Resolution in propositional logic}
+\begin{itemize}
+    \item As the name of the function we have to implement hints at us, a recursive procedure is required. The procedure itself is not far from intuitive. Simply put, given a clause, and a resolved knowledgebase, we simply have to backtrace what resolution lead to that resolvent. We can iterate trough the knowledge base to find both resolvers. A thing to look out for, is that there may be multiple resolutions with different resolvers that lead to the same conclusion. Since we know every clause is either a premise, or a conclusing from premises (and earlier conclusions), we can stop at the first encounter. When this happens, we can try and find what both resolvers were conclusions of using the same procedure, so we recurse. Note that if no resolvers were found, we must have stumbled upon a premise, and therefore do not recurse.\\
+    In \verb|C|, we can use some of the given functions to check each resolvent. Furthermore, we added function to check whether the given conclusing is in a clause set, and another to print the resolution.
+    \item Instead of fully replacing the \verb|init()| function, we decided to add a new function \verb|loadKB()|, and use \verb|init()| as a backup. This way, when no specific knowledgebase is given, it will fall back onto the default. Since most of the foundation for parsing the actual string was already in place, we only had to split the string in analysable substrings for the parser to process. With the help of the built in function \verb|strncpy|, this was easily managed.\\
+    A thing we paid special attention to, was error checking. Since long strings can be manually entered as a parameter, a small mistake could be easily glossed over. Therefore, we added a minimal, yet specific error check in each analysis we perform, and report to the user when he/she has made a syntax mistake.\\
+    \item After a little bit of puzzling, we came up with the following string\\
+    \begin{verbatim}
+    KB=[[a],[~m],[~a,b],[~b,c],[~c,~d],[~b,d,~e],
+    [d,e,f],[e,~f,g],[~g,~h],[h,l],[~g,m]]
+    \end{verbatim}
+    This produces the following proof
+    \begin{verbatim}
+    [e,~f,m] is inferred from [e,~f,g] and [~g,m].
+    [~b,d,~f,m] is inferred from [~b,d,~e] and [e,~f,m].
+    [~b,~c,~f,m] is inferred from [~c,~d] and [~b,d,~f,m].
+    [~b,~c,d,e,m] is inferred from [d,e,f] and [~b,~c,~f,m].
+    [~a,~c,d,e,m] is inferred from [~a,b] and [~b,~c,d,e,m].
+    [~a,~b,~c,d,m] is inferred from [~b,d,~e] and [~a,~c,d,e,m].
+    [~b,~c,d,m] is inferred from [a] and [~a,~b,~c,d,m].
+    [~a,~c,d,m] is inferred from [~a,b] and [~b,~c,d,m].
+    [~a,~b,d,m] is inferred from [~b,c] and [~a,~c,d,m].
+    [~a,~b,~c,m] is inferred from [~c,~d] and [~a,~b,d,m].
+    [~b,~c,m] is inferred from [a] and [~a,~b,~c,m].
+    [~a,~c,m] is inferred from [~a,b] and [~b,~c,m].
+    [~a,~b,m] is inferred from [~b,c] and [~a,~c,m].
+    [~b,m] is inferred from [a] and [~a,~b,m].
+    [~a,m] is inferred from [~a,b] and [~b,m].
+    [~a] is inferred from [~m] and [~a,m].
+    []=FALSE is inferred from [a] and [~a].
+    \end{verbatim}
+    What struck us, was that we intended this proof to be (about) 20 steps, and solving by resolving $m \land \neg m \Rightarrow \emptyset$. The program however, found a quicker (17 steps) solution by resolving $a \land \neg a \Rightarrow \emptyset$. This shows that there were in fact more ways to proof this sentence.
+\end{itemize}
+\end{document}

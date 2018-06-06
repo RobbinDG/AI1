@@ -1,0 +1,30 @@
+PWD /home/robbin/Documents/University/Year 1/2b/Artificial Intelligence/Programs/Lab 3b/Report
+INPUT /etc/texmf/web2c/texmf.cnf
+INPUT /usr/share/texmf/web2c/texmf.cnf
+INPUT /usr/share/texlive/texmf-dist/web2c/texmf.cnf
+INPUT /var/lib/texmf/web2c/pdftex/pdflatex.fmt
+INPUT /home/robbin/Documents/University/Year 1/2b/Artificial Intelligence/Programs/Lab 3b/Report/robbin.tex
+OUTPUT /home/robbin/Documents/University/Year 1/2b/Artificial Intelligence/Programs/Lab 3b/Report/robbin.log
+INPUT /usr/share/texlive/texmf-dist/tex/latex/base/report.cls
+INPUT /usr/share/texlive/texmf-dist/tex/latex/base/report.cls
+INPUT /usr/share/texlive/texmf-dist/tex/latex/base/size10.clo
+INPUT /usr/share/texlive/texmf-dist/tex/latex/base/size10.clo
+INPUT /usr/share/texlive/texmf-dist/tex/latex/tools/verbatim.sty
+INPUT /usr/share/texlive/texmf-dist/tex/latex/tools/verbatim.sty
+INPUT /home/robbin/Documents/University/Year 1/2b/Artificial Intelligence/Programs/Lab 3b/Report/robbin.aux
+INPUT /home/robbin/Documents/University/Year 1/2b/Artificial Intelligence/Programs/Lab 3b/Report/robbin.aux
+OUTPUT /home/robbin/Documents/University/Year 1/2b/Artificial Intelligence/Programs/Lab 3b/Report/robbin.aux
+INPUT /usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map
+INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr12.tfm
+INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm
+INPUT /usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
+INPUT /usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
+INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmtt10.tfm
+OUTPUT /home/robbin/Documents/University/Year 1/2b/Artificial Intelligence/Programs/Lab 3b/Report/robbin.pdf
+INPUT /var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map
+INPUT /home/robbin/Documents/University/Year 1/2b/Artificial Intelligence/Programs/Lab 3b/Report/robbin.aux
+INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
+INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb
+INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb
+INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb
+INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb
