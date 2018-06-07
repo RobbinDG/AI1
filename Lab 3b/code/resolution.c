@@ -406,19 +406,77 @@ void printProof(clauseSet s) {
 
 /* Decodes the structure parsed by CNFify */
 
-void loadKBfromRegex(char* regex) {
+void addPredicate(sentence *s, char* string, int* size) {
+    int newSize;
+    if(s->negated) {
+        newSize = *size + 3;
+        string = realloc(string, newSize * sizeof(char));
+        string[*size-1] = ',';
+        string[*size] = '~';
+        string[*size+1] = s->predicate;
+        string[*size+2] = '\0';
+    } else {
+        newSize = *size + 2;
+        string = realloc(string, newSize * sizeof(char));
+        string[*size-1] = ',';
+        string[*size] = s->predicate;
+        string[*size+1] = '\0';
+    }
+    *size = newSize;
+}
 
+void disjunctionToString(sentence* s, char* string, int* size) {
+    if(s->isSingular) {
+        addPredicate(s, string, size);
+        return;
+    }
+    disjunctionToString(s->left, string, size);
+    disjunctionToString(s->right, string, size);
+}
+
+void conjuctionToString(sentence* s, clauseSet *kb) {
+    if(s->isSingular || s->operator == OR) {
+        char* string = malloc(sizeof(char));
+        int* size = malloc(sizeof(int));
+        string[0] = '\0';
+        *size = 1;
+        disjunctionToString(s, string, size);
+        printf("%s %d\n", string+1, *size);
+        clause c;
+        makeClause(&c, string+1);
+        insertInClauseSet(c, kb);
+        return;
+    }
+    conjuctionToString(s->left, kb);
+    conjuctionToString(s->right, kb);
+}
+
+int loadKBfromRegex(clauseSet *kb, char* regex) {
+    makeEmptyClauseSet(kb);
+    if(!isValidInput(regex)) return FALSE;
+    sentence* s = convertToCNF(regex+3);
+    conjuctionToString(s, kb);
+    freeSentence(s);
+    return TRUE;
 }
 
            
 int main(int argc, char *argv[]) {
   clauseSet kb;
-  if(argc >= 2) {
-    if(!loadKB(&kb, argv[1])){
-        return 1;
+  // loadKBfromRegex("(!(a*b)<=>!c)");
+  // loadKBfromRegex(&kb, "KB=[a+b]");
+
+  if(argc == 2 && argv[1][0] == '1') {
+      init(&kb);
+  } else if(argc == 3) {
+    if(argv[1][0] == '2') {
+        if(!loadKB(&kb, argv[2])) return 1;
+    } else if(argv[1][0] == '3') {
+        if(!loadKBfromRegex(&kb, argv[2])) return 1;
     }
   } else {
-      init(&kb);
+    fprintf(stderr, "Please enter valid arguments:\n %s <mode:(1,2,3)> <string>\n", argv[0]);
+    return 1;
   }
   printf("KB=");
   printlnClauseSet(kb);

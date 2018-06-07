@@ -18,9 +18,6 @@ typedef struct sentence {
     int negated;
 } sentence;
 
-void throwSyntaxError() {
-    fprintf(stderr, "Syntax Error: while parsing sentence. Exiting...\n");
-    exit(1);
-}
-
+void printSentence(sentence* s);
 sentence* convertToCNF(char* regex);
+void freeSentence(sentence* s);

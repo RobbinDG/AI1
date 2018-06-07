@@ -7,7 +7,11 @@
 \begin{itemize}
     \item As the name of the function we have to implement hints at us, a recursive procedure is required. The procedure itself is not far from intuitive. Simply put, given a clause, and a resolved knowledgebase, we simply have to backtrace what resolution lead to that resolvent. We can iterate trough the knowledge base to find both resolvers. A thing to look out for, is that there may be multiple resolutions with different resolvers that lead to the same conclusion. Since we know every clause is either a premise, or a conclusing from premises (and earlier conclusions), we can stop at the first encounter. When this happens, we can try and find what both resolvers were conclusions of using the same procedure, so we recurse. Note that if no resolvers were found, we must have stumbled upon a premise, and therefore do not recurse.\\
     In \verb|C|, we can use some of the given functions to check each resolvent. Furthermore, we added function to check whether the given conclusing is in a clause set, and another to print the resolution.
-    \item Instead of fully replacing the \verb|init()| function, we decided to add a new function \verb|loadKB()|, and use \verb|init()| as a backup. This way, when no specific knowledgebase is given, it will fall back onto the default. Since most of the foundation for parsing the actual string was already in place, we only had to split the string in analysable substrings for the parser to process. With the help of the built in function \verb|strncpy|, this was easily managed.\\
+    \item Instead of fully replacing the \verb|init()| function, we decided to add a new function \verb|loadKB()|, and use \verb|init()| as a backup. You can run either one using the following syntax: \verb|./a.out <mode:(1,2,3)> <string>|, where you select a mode for each operation. 1 is \verb|init()|, 2 is \verb|loadKB()|, and 3 is \verb|loadKBfromString()|, which is from the bonus exercise. As an example, the given input for our program would be: 
+    \begin{verbatim}
+    ./a.out 2 KB=[[~a,~b],[a,~b,~c,~d],[b,~d],[c,~d],[d]]
+    \end{verbatim} 
+    Since most of the foundation for parsing the actual string was already in place, we only had to split the string in analysable substrings for the parser to process. With the help of the built in function \verb|strncpy|, this was easily managed.\\
     A thing we paid special attention to, was error checking. Since long strings can be manually entered as a parameter, a small mistake could be easily glossed over. Therefore, we added a minimal, yet specific error check in each analysis we perform, and report to the user when he/she has made a syntax mistake.\\
     \item After a little bit of puzzling, we came up with the following string\\
     \begin{verbatim}
@@ -35,5 +39,33 @@
     []=FALSE is inferred from [a] and [~a].
     \end{verbatim}
     What struck us, was that we intended this proof to be (about) 20 steps, and solving by resolving $m \land \neg m \Rightarrow \emptyset$. The program however, found a quicker (17 steps) solution by resolving $a \land \neg a \Rightarrow \emptyset$. This shows that there were in fact more ways to proof this sentence.
+    \item To complete this exercise, we created an entirely sepperate mode for the program, namely 3, which can also accept any expression of any form, and including the implication and bi-implication. To give an example, the expression 
+    $$ (a \Rightarrow b) \lor \neg(c \Leftrightarrow (d \land \neg e)) $$
+    would become 
+    \begin{verbatim}
+    KB=[[a=-b]+~[c-=-[d*~e]]]
+    \end{verbatim}
+    Note that we had to change the (bi-)implication and negation notation a little bit, since BASH does not accept \verb|<|, \verb|>| and \verb|!|, since they all have a different usage within the shell.
+    The before presented output then yields
+    \begin{verbatim}
+d,c,~a,b 10
+e,c,~a,b 10
+~c,c,~a,b 11
+d,~d,~e,~a,b 14
+e,~d,~e,~a,b 14
+~c,~d,~e,~a,b 15
+KB={[~a,b,c,d], [~a,b,c,e], [~a,b,c,~c]=TRUE, 
+[~a,b,d,~d,~e]=TRUE, [~a,b,~d,e,~e]=TRUE, [~a,b,~c,~d,~e]}
+KB after resolution={[~a,b,c,d], [~a,b,c,e], 
+[~a,b,c,~c]=TRUE, [~a,b,d,~d,~e]=TRUE, [~a,b,~d,e,~e]=TRUE, 
+[~a,b,~c,~d,~e], [~a,b,d], [~a,b,c,~e], [~a,b,c,e,~e]=TRUE, 
+[~a,b,c,~c,~e]=TRUE, [~a,b,e], [~a,b,c,d,~d]=TRUE, [~a,b,c,~d], 
+[~a,b,c,~c,~d]=TRUE, [~a,b,~d,~e], [~a,b,e,~e]=TRUE, 
+[~a,b,d,~d]=TRUE, [~a,b,~c,~e], [~a,b,~c,~d], [~a,b,d,~e], 
+[~a,b,c], [~a,b,~d,e], [~a,b,~e], [~a,b,~d], [~a,b], [~a,b,~c]}
+Resolution proof failed.
+    \end{verbatim}
+    As expected, this sentence did not have any meaning. To get a resolvable sentence, one could put all premises in conjuction, as one statement (like this: \verb|KB=[[..]*[..]*...]|). Our program does NOT support comma's to sepparate premises, so this a substitute for that expression.\\
+    The program itself is simple in essense. To recognize the expressions, we posed a grammar, which is written as a comment within the code for those interested. By implementing that, we generate an expression tree, which we can then transform into CNF. The premises can then be extracted from the CNF. 
 \end{itemize}
 \end{document}

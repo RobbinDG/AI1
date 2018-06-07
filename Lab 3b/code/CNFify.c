@@ -8,8 +8,8 @@
 
 /*
  * We are using the following grammar:
- *  <sentence> ::= [ '!' ] [ '(' ] <literal>|<sentence> [ <operator> <literal>|<sentence> ] [ ')' ]
- *  <literal>  ::= [ '!' ] <letter>
+ *  <sentence> ::= [ '~' ] [ '[' ] <literal>|<sentence> [ <operator> <literal>|<sentence> ] [ ']' ]
+ *  <literal>  ::= [ '~' ] <letter>
  *  <letter>   ::= 'a'|'b'|...|'z'
  */
 
@@ -60,15 +60,16 @@ int acceptOperator(char* input, int* p, logicOperator* n) {
         *n = OR;
         return TRUE;
     } else if(acceptCharacter(input, p, '=') &&
-              acceptCharacter(input, p, '>')) {
+              acceptCharacter(input, p, '-')) {
         *n = IMPLICATION;
         return TRUE;
-    } else if(acceptCharacter(input, p, '<') &&
+    } else if(acceptCharacter(input, p, '-') &&
               acceptCharacter(input, p, '=') &&
-              acceptCharacter(input, p, '>')) {
+              acceptCharacter(input, p, '-')) {
         *n = BIIMPLICATION;
         return TRUE;
     }
+    printf("here\n");
     return FALSE;
 }
 
@@ -76,13 +77,13 @@ int acceptSentence(char* input, int* p, sentence** parent) {
     sentence* s = newSentence();
     int bracketsFlag = FALSE;
 
-    if(acceptCharacter(input, p, '!')) s->negated = TRUE;
+    if(acceptCharacter(input, p, '~')) s->negated = TRUE;
     if(acceptLiteral(input, p, s)) {
         s->isSingular = TRUE;
         *parent = s;
         return TRUE;
     } 
-    if(acceptCharacter(input, p, '(')) bracketsFlag = TRUE;
+    if(acceptCharacter(input, p, '[')) bracketsFlag = TRUE;
     if(!acceptSentence(input, p, &(s->left))) throwSyntaxError();
     logicOperator n = NONE;
     if(acceptOperator(input, p, &n)) {
@@ -100,7 +101,7 @@ int acceptSentence(char* input, int* p, sentence** parent) {
         s->left = t;
         if(!acceptSentence(input, p, &(s->right))) throwSyntaxError();
     }
-    if(bracketsFlag && !acceptCharacter(input, p, ')')) throwSyntaxError();
+    if(bracketsFlag && !acceptCharacter(input, p, ']')) throwSyntaxError();
     // append created sentence to parent
     *parent = s;
     return TRUE;
@@ -216,7 +217,6 @@ void pushNegations(sentence* s) {
 
 void deMorgan(sentence *s) {
     while(!isAtomic(s)) {
-        printf("pushing\n");
         pushNegations(s);
     }
 }
@@ -247,6 +247,16 @@ void eliminateBiimplication(sentence* s) {
     }
     eliminateBiimplication(s->left);
     eliminateBiimplication(s->right);
+}
+
+void freeSentence(sentence* s) {
+    if(s->isSingular) {
+        free(s);
+        return;
+    }
+    freeSentence(s->left);
+    freeSentence(s->right);
+    free(s);
 }
 
 sentence* convertToCNF(char* regex) {
