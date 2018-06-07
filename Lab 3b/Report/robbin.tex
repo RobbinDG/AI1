@@ -1,6 +1,7 @@
 \documentclass{report}
 
 \usepackage{verbatim}
+\usepackage{amsmath}
 
 \begin{document}
 \section*{Exercise 2 - Resolution in propositional logic}
@@ -46,7 +47,11 @@
     KB=[[a=-b]+~[c-=-[d*~e]]]
     \end{verbatim}
     Note that we had to change the (bi-)implication and negation notation a little bit, since BASH does not accept \verb|<|, \verb|>| and \verb|!|, since they all have a different usage within the shell.
-    The before presented output then yields
+    The before presented input generates a CNF expression
+    \begin{align*} 
+    (((((d \lor c) \lor (\neg a \lor b)) \land ((e \lor c) \lor (\neg a \lor b)))\\ \land ((\neg c \lor c) \land (\neg a \lor b))) \land ((((d \lor(\neg d \lor \neg e))\\\lor(\neg a \lor b))\land ((e \land(\neg d \lor \neg e)) \lor (\neg a \lor b)))\\\land((\neg c \lor (\neg d \lor \neg e))\lor(\neg a \lor b))))
+    \end{align*}
+    and yields the output
     \begin{verbatim}
 d,c,~a,b 10
 e,c,~a,b 10
@@ -66,6 +71,6 @@ KB after resolution={[~a,b,c,d], [~a,b,c,e],
 Resolution proof failed.
     \end{verbatim}
     As expected, this sentence did not have any meaning. To get a resolvable sentence, one could put all premises in conjuction, as one statement (like this: \verb|KB=[[..]*[..]*...]|). Our program does NOT support comma's to sepparate premises, so this a substitute for that expression.\\
-    The program itself is simple in essense. To recognize the expressions, we posed a grammar, which is written as a comment within the code for those interested. By implementing that, we generate an expression tree, which we can then transform into CNF. The premises can then be extracted from the CNF. 
+    The program itself is simple in essense. To recognize the expressions, we posed a grammar, which is written as a comment within the code for those interested. By implementing that, we generate an expression tree, which we can then transform into CNF. The premises can then be extracted from the CNF.
 \end{itemize}
 \end{document}
