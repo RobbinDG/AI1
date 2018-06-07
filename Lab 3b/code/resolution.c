@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "CNFify.h"
+
 /* Assumption: the propositional symbols are a, b, .., z.
  * So, each propositional formula contains at most 26 
  * different variables. Sets of variables can therefore 
@@ -397,6 +399,17 @@ void printProof(clauseSet s) {
   idx = findIndexOfClause(empty, s);
   recursivePrintProof(idx, s);
 }
+
+/******** BONUS INTEGRATION ***************************************/
+
+/* most of the code is in a sepparate file called 'CNFify.c'*/
+
+/* Decodes the structure parsed by CNFify */
+
+void loadKBfromRegex(char* regex) {
+
+}
+
            
 int main(int argc, char *argv[]) {
   clauseSet kb;
