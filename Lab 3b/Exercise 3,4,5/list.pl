@@ -12,7 +12,4 @@ reverse([],[]).
 reverse([H|T], R) :- reverse(T, T1), append(T1, [H], R).
 
 % palindrome(L) is true if L is a palindrome
-% palindrome([]).
-% palindrome([_]).
-% palindrome(L) :- append([H|T], [H], L), palindrome(T).
 palindrome(L):- reverse(L, L).

@@ -56,33 +56,13 @@ fib(X2, Y2),
 Y is Y1+Y2.
 
 % power(X,N,Y) is true if X^N = Y (using improg tactics)
-% power(X,0,Y) :- Y =:= 1.
 power(_,0,1) :- !.
 power(X,1,X) :- !.
-% power(X,N,Y) :- N>1, N1 is N-1, Y1 is Y/X, power(X,N1,Y1). 
-power(X,N,Y) :- N>1, N1 is N mod 2, power(X,N,Y,N1).
+power(X,N,Y) :- N>1, Z is N mod 2, power(X,N,Y,Z).
 power(_,0,1,_) :- !.
 power(X,1,X,_) :- !.
 power(X,N,Y,0) :- N>1, N1 is N/2, X1 is X*X, power(X1,N1,Y).
 power(X,N,Y,1) :- N>1, N1 is N-1, Y1 is Y/X, power(X,N1,Y1,0).
-% power(X,N,Y) :-
-% (odd(N), N1 is N-1, Y1 is Y/X, power(X,N1,Y1));
-% (even(N), N1 is N/2, X1 is X*X, power(X1,N1,Y)).
-% N-1 works, N/2 doesnt cuz N gets smaller than 1
-% (N > 1, N1 is N / 2, X1 is X*X, power(X1,N1,Y)).
-% if n is odd, do n div 2 and X*X*X?????
-
-% power(X,N,Y) :-
-% X > 0,
-% even(N),
-% N1 is N / 2,
-% X1 is X*X,
-% power(X1, N1, Y).
-% power(X,N,Y) :-
-% odd(N),
-% N1 is N-1,
-% X1 is X*X,
-% power(X1,N1,Y).
 
 % Example queries:
 % Isnumbers are represented as successors of 0. For example, 2 is s(s(0)).
