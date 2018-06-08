@@ -29,10 +29,10 @@ even(N) :- N mod 2 =:= 0.
 % odd(N) is true if N mod 2 = 1
 odd(N) :- N mod 2 =:= 1.
 
-% div2(N,D) is true if N div 2 = D
-div2(N,D) :- N div 2 =:= D.
+% div2(N,D) is true if N / 2 = D
+div2(N,D) :- N / 2 =:= D.
 
-% divi2(N,D) is true if N div 2 = D
+% divi2(N,D) is true if N / 2 = D
 divi2(N,D) :- times(s(s(0)),D,N).
 
 % log(X,B,N) is true if B^N = X
@@ -40,8 +40,8 @@ log(1,_,0) :- !.
 log(X,B,N) :-
 X > 1,
 X1 is X/B,
-log(X1, B, N1),
-N is N1 + 1.
+N1 is N - 1,
+log(X1, B, N1).
 
 % fib(X,Y) is true if fib(X)=Y [Note: fib(0)=0, fib(1)=1,
 % fib(n) = fib(n-1) + fib(n-2)]
@@ -57,20 +57,27 @@ Y is Y1+Y2.
 
 % power(X,N,Y) is true if X^N = Y (using improg tactics)
 % power(X,0,Y) :- Y =:= 1.
-% power(_,0,1) :- !.
-% power(0,_,0) :- !.
-% power(X,1,Y) :- X =:= Y.
+power(_,0,1) :- !.
+power(X,1,X) :- !.
+% power(X,N,Y) :- N>1, N1 is N-1, Y1 is Y/X, power(X,N1,Y1). 
+power(X,N,Y) :- N>1, N1 is N mod 2, power(X,N,Y,N1).
+power(_,0,1,_) :- !.
+power(X,1,X,_) :- !.
+power(X,N,Y,0) :- N>1, N1 is N/2, X1 is X*X, power(X1,N1,Y).
+power(X,N,Y,1) :- N>1, N1 is N-1, Y1 is Y/X, power(X,N1,Y1,0).
+% power(X,N,Y) :-
+% (odd(N), N1 is N-1, Y1 is Y/X, power(X,N1,Y1));
+% (even(N), N1 is N/2, X1 is X*X, power(X1,N1,Y)).
+% N-1 works, N/2 doesnt cuz N gets smaller than 1
+% (N > 1, N1 is N / 2, X1 is X*X, power(X1,N1,Y)).
+% if n is odd, do n div 2 and X*X*X?????
 
 % power(X,N,Y) :-
-X > 0,
+% X > 0,
 % even(N),
 % N1 is N / 2,
-% N1 is N - 1,
 % X1 is X*X,
-% power(X, N1, Y1),
-Y is Y1 * X.
-
-
+% power(X1, N1, Y).
 % power(X,N,Y) :-
 % odd(N),
 % N1 is N-1,
